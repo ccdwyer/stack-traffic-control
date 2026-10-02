@@ -16,10 +16,10 @@ const PANE = 'stack-board'
 // How long a look stays good for the band. The guard always looks fresh.
 const TTL_MS = 30_000
 
-type $ = EngineInterface
+type Engine = EngineInterface
 type Ran = { exitCode: number; stdout: string; stderr: string; threw: boolean }
 
-async function run($: $, argv: string[], cwd?: string, timeoutMs = 8_000): Promise<Ran> {
+async function run($: Engine, argv: string[], cwd?: string, timeoutMs = 8_000): Promise<Ran> {
   try {
     const r = await $.process.run(argv, { cwd, timeoutMs })
     return { exitCode: r.exitCode, stdout: r.stdout, stderr: r.stderr, threw: false }
@@ -29,7 +29,7 @@ async function run($: $, argv: string[], cwd?: string, timeoutMs = 8_000): Promi
 }
 
 // The repo root at `cwd`: a path, `null` when it is certainly not a repo, or `undefined` when the check failed.
-async function repoRoot($: $, cwd?: string): Promise<string | null | undefined> {
+async function repoRoot($: Engine, cwd?: string): Promise<string | null | undefined> {
   const top = await run($, ['git', 'rev-parse', '--show-toplevel'], cwd, 3_000)
   if (top.exitCode === 0) return top.stdout.trim()
   if (/not a git repository|cannot change to|No such file or directory|Not a directory/i.test(top.stderr)) return null
@@ -40,7 +40,7 @@ const lines = (text: string) => text.split('\n').map(l => l.trim()).filter(l => 
 
 // The truth about one checkout. The stack file is the authority: every branch
 // of every stack it lists is protected, whatever `gh stack view` says.
-async function lookAt($: $, at: string): Promise<Stack> {
+async function lookAt($: Engine, at: string): Promise<Stack> {
   const now = await $.clock.now()
   const head = await run($, ['git', 'symbolic-ref', '--quiet', '--short', 'HEAD'], at, 3_000)
   const branch = head.exitCode === 0 ? head.stdout.trim() : ''
@@ -166,7 +166,7 @@ function setting(s: Stack, overrides: Record<string, string>, key: string): stri
 }
 
 // The checkout at `cwd`; `null` when it is not a git repo.
-async function stackAt($: $, cwd: string | undefined, fresh: boolean): Promise<Stack | null> {
+async function stackAt($: Engine, cwd: string | undefined, fresh: boolean): Promise<Stack | null> {
   const at = await repoRoot($, cwd)
   if (at === null) return null
   if (at === undefined) {
@@ -207,7 +207,7 @@ function checksOf(rollup: unknown): BranchDetail['checks'] {
   return states.includes('SUCCESS') ? 'pass' : 'none'
 }
 
-async function detailOf($: $, at: string, name: string, isCurrent: boolean): Promise<BranchDetail> {
+async function detailOf($: Engine, at: string, name: string, isCurrent: boolean): Promise<BranchDetail> {
   const [pr, ahead, status] = await Promise.all([
     run($, ['gh', 'pr', 'view', name, '--json', 'number,state,statusCheckRollup'], at, 10_000),
     run($, ['git', 'rev-list', '--count', `${name}@{upstream}..${name}`], at, 3_000),
@@ -241,7 +241,7 @@ async function detailOf($: $, at: string, name: string, isCurrent: boolean): Pro
   }
 }
 
-async function refresh($: $) {
+async function refresh($: Engine) {
   if (await read($, loading)) {
     await update($, pending, () => true)
     return
@@ -609,7 +609,7 @@ function slugOf(repo: string): string {
   return parts.slice(-2).join('/').toLowerCase()
 }
 
-async function repoSlug($: $, at: string): Promise<string | null> {
+async function repoSlug($: Engine, at: string): Promise<string | null> {
   const view = await run($, ['gh', 'repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'], at, 8_000)
   return view.exitCode === 0 ? view.stdout.trim() : null
 }
@@ -626,7 +626,7 @@ function flag(args: string[], short: string, long: string): string | null {
 
 const PR_EDIT_VALUED = new Set(['-B', '--base', '-t', '--title', '-b', '--body', '-F', '--body-file', '-m', '--milestone', '--add-assignee', '--remove-assignee', '--add-label', '--remove-label', '--add-reviewer', '--remove-reviewer', '--add-project', '--remove-project'])
 
-async function judgePr($: $, s: Stack, op: PrOp, command: string): Promise<Judgement> {
+async function judgePr($: Engine, s: Stack, op: PrOp, command: string): Promise<Judgement> {
   if (op.kind === 'pr-edit' && flag(op.args, '-B', '--base') === null) return null
   if (op.repo !== undefined) {
     const slug = await repoSlug($, s.root)
@@ -664,7 +664,7 @@ const PROTECTED_TEXT = /\b(push|rebase|pull)\b|\bpr\b[\s\S]*\b(edit|create)\b/
 
 const short = (command: string) => (command.length > 120 ? `${command.slice(0, 119)}…` : command)
 
-async function shellContext($: $): Promise<Context> {
+async function shellContext($: Engine): Promise<Context> {
   return { home: await $.env.get('HOME') }
 }
 
