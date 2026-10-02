@@ -2,7 +2,7 @@
 
 ![Stack Traffic Control demo](media/demo.gif)
 
-The band above the prompt, the `/stack` departure board, and a raw force-push refused with the `gh stack` alternative. [MP4](media/demo.mp4)
+The band above the prompt, the `/stack` departure board, and a raw force-push refused with the `gh stack` alternative. [MP4](https://github.com/ccdwyer/claude-mods/raw/main/media/stack-traffic-control.mp4)
 
 
 A Claude Code mod that acts as a departure board for [`gh stack`](https://gh.io/stacks), GitHub's official stacked-PR extension.
@@ -75,3 +75,23 @@ A Claude Code mod that acts as a departure board for [`gh stack`](https://gh.io/
 claude plugin validate .
 claude plugin test .
 ```
+
+## What it hooks
+
+Events this mod hooks, as `claude plugin validate` reads the module:
+
+- `session.start`
+- `command.run{command=stack}`
+- `turn.complete`
+- `tool.call{tool=Bash}`
+- `ui.render{component=AbovePrompt}`
+- `ui.render{component=Pane`
+- `requestId=stack-board}`
+
+Engine calls it makes: `$.clock.now (via lookAt`, `stackAt)`, `$.command.register`, `$.env.get (via shellContext)`, `$.process.run (via run)`, `$.state.get`, `$.state.set`, `$.ui.open`, `$.ui.resolve`.
+
+A `tool.call` hook sits in the middle of every tool call: it can see the call, refuse it, or add context to its result. This mod uses that only for the behaviour described above.
+
+## License
+
+MIT
