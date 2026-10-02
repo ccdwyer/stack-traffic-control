@@ -1,5 +1,10 @@
 # Stack Traffic Control
 
+![Stack Traffic Control demo](media/demo.gif)
+
+The band above the prompt, the `/stack` departure board, and a raw force-push refused with the `gh stack` alternative. [MP4](media/demo.mp4)
+
+
 A Claude Code mod that acts as a departure board for [`gh stack`](https://gh.io/stacks), GitHub's official stacked-PR extension.
 
 - **`/stack`** opens a pane listing the stack top to bottom. For each branch it shows the PR number, CI checks (✓ ✗ …), and whether the branch is ready, needs a rebase, is queued or has landed. It also shows unpushed commits (↑, or *unpublished* for a branch that has never been pushed) and uncommitted changes (✎). A **refresh** button updates it.
