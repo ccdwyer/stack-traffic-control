@@ -92,6 +92,14 @@ Engine calls it makes: `$.clock.now (via lookAt`, `stackAt)`, `$.command.registe
 
 A `tool.call` hook sits in the middle of every tool call: it can see the call, refuse it, or add context to its result. This mod uses that only for the behaviour described above.
 
+## Privacy
+
+It uses your existing GitHub CLI (`gh`, with the `gh stack` extension) to read your stack and pull request status from GitHub, under your own account. Nothing is sent anywhere else.
+
+The mod collects no analytics or telemetry, and its author receives no data from it.
+
+Full policy: [PRIVACY.md](PRIVACY.md).
+
 ## License
 
 MIT
