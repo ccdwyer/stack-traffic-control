@@ -1,0 +1,11 @@
+{
+  "name": "stack-traffic-control",
+  "version": "0.1.0",
+  "description": "A departure board for gh stack: live stack pane, a one-line status above the prompt, and raw force-pushes, rebases and PR base edits on stacked branches redirected to gh stack",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "Chris Dwyer",
+    "url": "https://github.com/ccdwyer"
+  },
+  "repository": "https://github.com/ccdwyer/stack-traffic-control"
+}
